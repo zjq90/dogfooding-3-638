@@ -13,6 +13,13 @@
         <p class="subtitle">Library Management System</p>
       </div>
       
+      <div class="login-type-switch">
+        <el-radio-group v-model="loginType" size="medium">
+          <el-radio-button label="admin">管理员登录</el-radio-button>
+          <el-radio-button label="employee">员工登录</el-radio-button>
+        </el-radio-group>
+      </div>
+      
       <el-form 
         ref="loginForm" 
         :model="loginForm" 
@@ -23,7 +30,7 @@
         <el-form-item prop="username">
           <el-input
             v-model="loginForm.username"
-            placeholder="请输入用户名"
+            :placeholder="loginType === 'admin' ? '请输入管理员账号' : '请输入员工用户名'"
             prefix-icon="el-icon-user"
             size="large"
           />
@@ -54,7 +61,8 @@
       </el-form>
       
       <div class="login-footer">
-        <p>默认账号: admin / 密码: admin123</p>
+        <p v-if="loginType === 'admin'">管理员账号: admin / 密码: admin123</p>
+        <p v-else>员工账号: emp001~emp005 / 密码: 123456</p>
       </div>
     </div>
     
@@ -68,11 +76,14 @@
 
 <script>
 import { login } from '@/api/auth'
+import { employeeLogin } from '@/api/employeeAuth'
+import request from '@/utils/request'
 
 export default {
   name: 'Login',
   data() {
     return {
+      loginType: 'admin',
       loginForm: {
         username: 'admin',
         password: 'admin123'
@@ -89,22 +100,51 @@ export default {
       loading: false
     }
   },
+  watch: {
+    loginType(val) {
+      if (val === 'admin') {
+        this.loginForm = { username: 'admin', password: 'admin123' }
+      } else {
+        this.loginForm = { username: 'emp001', password: '123456' }
+      }
+    }
+  },
   methods: {
     handleLogin() {
       this.$refs.loginForm.validate(async valid => {
         if (valid) {
           this.loading = true
           try {
-            const res = await login(this.loginForm)
-            if (res.code === 200) {
-              const { token, userId, username, realName, role, avatar } = res.data
-              const userInfo = { userId, username, realName, role, avatar }
-              this.$store.dispatch('login', { token, userInfo })
-              this.$message.success('登录成功')
-              this.$router.push('/')
+            let res
+            if (this.loginType === 'admin') {
+              res = await login(this.loginForm)
+              if (res.code === 200) {
+                const { token, userId, username, realName, role, avatar } = res.data
+                const userInfo = { userId, username, realName, role, avatar, type: 'admin' }
+                this.$store.dispatch('login', { token, userInfo })
+                this.$message.success('登录成功')
+                this.$router.replace('/').catch(() => {})
+              }
+            } else {
+              res = await employeeLogin(this.loginForm.username, this.loginForm.password)
+              if (res.code === 200) {
+                const { token, employeeId, username, name, departmentId } = res.data
+                const userInfo = { 
+                  userId: employeeId, 
+                  username, 
+                  realName: name, 
+                  role: 2, 
+                  departmentId,
+                  type: 'employee' 
+                }
+                this.$store.dispatch('login', { token, userInfo })
+                this.$message.success('登录成功')
+                this.$router.replace('/').catch(() => {})
+              }
             }
           } catch (error) {
             console.error('登录失败:', error)
+            this.$message.error(error.message || '登录失败，请检查用户名和密码')
           } finally {
             this.loading = false
           }
@@ -156,7 +196,7 @@ export default {
 
 .login-header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
 }
 
 .logo {
@@ -188,6 +228,15 @@ export default {
   font-size: 14px;
   color: #8C8C8C;
   letter-spacing: 1px;
+}
+
+.login-type-switch {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.login-type-switch :deep(.el-radio-button__inner) {
+  padding: 10px 20px;
 }
 
 .login-form {

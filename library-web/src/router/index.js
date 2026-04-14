@@ -4,6 +4,25 @@ import store from '@/store'
 
 Vue.use(VueRouter)
 
+const originalPush = VueRouter.prototype.push
+const originalReplace = VueRouter.prototype.replace
+
+VueRouter.prototype.push = function push(location) {
+  return originalPush.call(this, location).catch(err => {
+    if (err.name !== 'NavigationDuplicated') {
+      return Promise.reject(err)
+    }
+  })
+}
+
+VueRouter.prototype.replace = function replace(location) {
+  return originalReplace.call(this, location).catch(err => {
+    if (err.name !== 'NavigationDuplicated') {
+      return Promise.reject(err)
+    }
+  })
+}
+
 const routes = [
   {
     path: '/login',
@@ -58,6 +77,18 @@ const routes = [
         name: 'Employees',
         component: () => import('@/views/employee/index.vue'),
         meta: { title: '人员管理', icon: 'el-icon-s-custom' }
+      },
+      {
+        path: 'attendance',
+        name: 'Attendance',
+        component: () => import('@/views/attendance/index.vue'),
+        meta: { title: '考勤统计', icon: 'el-icon-date' }
+      },
+      {
+        path: 'purchase',
+        name: 'Purchase',
+        component: () => import('@/views/purchase/index.vue'),
+        meta: { title: '图书采购', icon: 'el-icon-shopping-cart-2' }
       }
     ]
   },
@@ -73,18 +104,14 @@ const router = new VueRouter({
   routes
 })
 
-// 路由守卫
 router.beforeEach((to, from, next) => {
   const token = store.getters.token
   
   if (to.meta && to.meta.public) {
-    // 公开页面直接放行
     next()
   } else if (!token) {
-    // 需要登录但未登录，跳转到登录页
     next('/login')
   } else {
-    // 已登录，放行
     next()
   }
 })

@@ -44,30 +44,32 @@
         :data="tableData"
         stripe
         style="width: 100%"
+        border
       >
-        <el-table-column type="index" width="50" align="center" />
-        <el-table-column prop="name" label="姓名" width="100" />
-        <el-table-column prop="employeeNo" label="工号" width="100" align="center" />
-        <el-table-column prop="departmentName" label="所属部门" width="120" />
-        <el-table-column prop="position" label="职位" width="120" />
-        <el-table-column prop="phone" label="手机号" width="130" />
+        <el-table-column type="index" width="60" align="center" label="序号" />
+        <el-table-column prop="name" label="姓名" min-width="100" />
+        <el-table-column prop="employeeNo" label="工号" min-width="100" align="center" />
+        <el-table-column prop="departmentName" label="所属部门" min-width="120" />
+        <el-table-column prop="position" label="职位" min-width="120" />
+        <el-table-column prop="phone" label="手机号" min-width="130" />
         <el-table-column prop="email" label="邮箱" min-width="180" show-overflow-tooltip />
-        <el-table-column prop="status" label="状态" width="80" align="center">
+        <el-table-column prop="status" label="状态" min-width="80" align="center">
           <template slot-scope="scope">
             <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'" size="small">
               {{ scope.row.status === 1 ? '在职' : '离职' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column prop="createTime" label="创建时间" min-width="160" />
+        <el-table-column label="操作" min-width="150" fixed="right" align="center">
           <template slot-scope="scope">
-            <el-button type="primary" size="small" @click="handleEdit(scope.row)">
+            <el-button type="text" size="small" @click="handleEdit(scope.row)">
               编辑
             </el-button>
             <el-button 
-              type="danger" 
+              type="text" 
               size="small"
+              style="color: #f56c6c"
               @click="handleDelete(scope.row)"
             >
               删除
@@ -76,15 +78,17 @@
         </el-table-column>
       </el-table>
       
-      <el-pagination
-        :current-page="page"
-        :page-sizes="[10, 20, 50, 100]"
-        :page-size="size"
-        layout="total, sizes, prev, pager, next, jumper"
-        :total="total"
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
+      <div class="pagination-wrapper">
+        <el-pagination
+          :current-page="page"
+          :page-sizes="[10, 20, 50, 100]"
+          :page-size="size"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total"
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+        />
+      </div>
     </el-card>
     
     <el-dialog
@@ -355,5 +359,11 @@ export default {
 .card-header span {
   font-size: 16px;
   font-weight: 500;
+}
+
+.pagination-wrapper {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
 }
 </style>

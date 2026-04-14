@@ -13,6 +13,9 @@ public interface EmployeeMapper extends BaseMapper<Employee> {
     @Select("SELECT * FROM sys_employee WHERE employee_no = #{employeeNo} AND deleted = 0")
     Employee selectByEmployeeNo(@Param("employeeNo") String employeeNo);
     
+    @Select("SELECT * FROM sys_employee WHERE username = #{username} AND deleted = 0")
+    Employee selectByUsername(@Param("username") String username);
+    
     @Select("SELECT e.*, d.name as department_name FROM sys_employee e " +
             "LEFT JOIN sys_department d ON e.department_id = d.id " +
             "WHERE e.deleted = 0 ORDER BY e.create_time DESC")

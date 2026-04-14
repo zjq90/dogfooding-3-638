@@ -1,37 +1,34 @@
 package com.library.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
-@TableName("sys_employee")
-public class Employee {
+@TableName("book_purchase")
+public class BookPurchase {
     
     @TableId(type = IdType.AUTO)
     private Long id;
     
-    private String name;
+    private String batchNo;
     
-    private String employeeNo;
+    private Long purchaserId;
     
-    private String username;
+    private String purchaserName;
     
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private String password;
+    private BigDecimal totalPrice;
     
-    private String faceId;
+    private Integer totalQuantity;
     
-    private Long departmentId;
-    
-    private String phone;
-    
-    private String email;
-    
-    private String position;
+    private LocalDate purchaseDate;
     
     private Integer status;
+    
+    private String remark;
     
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
@@ -44,5 +41,5 @@ public class Employee {
     private Integer deleted;
     
     @TableField(exist = false)
-    private String departmentName;
+    private List<BookPurchaseItem> items;
 }
