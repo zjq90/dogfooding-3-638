@@ -58,6 +58,30 @@ const routes = [
         name: 'Employees',
         component: () => import('@/views/employee/index.vue'),
         meta: { title: '人员管理', icon: 'el-icon-s-custom' }
+      },
+      {
+        path: 'purchase/batch',
+        name: 'PurchaseBatch',
+        component: () => import('@/views/purchase/batch/index.vue'),
+        meta: { title: '采购批次', icon: 'el-icon-s-order' }
+      },
+      {
+        path: 'purchase/detail',
+        name: 'PurchaseDetail',
+        component: () => import('@/views/purchase/detail/index.vue'),
+        meta: { title: '采购明细', icon: 'el-icon-s-goods' }
+      },
+      {
+        path: 'administration/attendance',
+        name: 'Attendance',
+        component: () => import('@/views/administration/attendance/index.vue'),
+        meta: { title: '考勤统计', icon: 'el-icon-time' }
+      },
+      {
+        path: 'administration/employee',
+        name: 'AdminEmployee',
+        component: () => import('@/views/administration/employee/index.vue'),
+        meta: { title: '人员管理', icon: 'el-icon-user-solid' }
       }
     ]
   },
