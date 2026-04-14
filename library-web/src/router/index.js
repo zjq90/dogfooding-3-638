@@ -58,6 +58,18 @@ const routes = [
         name: 'Employees',
         component: () => import('@/views/employee/index.vue'),
         meta: { title: '人员管理', icon: 'el-icon-s-custom' }
+      },
+      {
+        path: 'procurement',
+        name: 'Procurement',
+        component: () => import('@/views/procurement/index.vue'),
+        meta: { title: '采购管理', icon: 'el-icon-shopping-cart-2' }
+      },
+      {
+        path: 'attendance',
+        name: 'Attendance',
+        component: () => import('@/views/attendance/index.vue'),
+        meta: { title: '考勤统计', icon: 'el-icon-time' }
       }
     ]
   },
