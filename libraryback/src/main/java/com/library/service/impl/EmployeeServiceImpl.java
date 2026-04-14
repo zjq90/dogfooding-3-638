@@ -6,14 +6,20 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.library.common.BusinessException;
 import com.library.common.PageResult;
 import com.library.entity.Department;
+import com.library.entity.DepartmentPermission;
 import com.library.entity.Employee;
+import com.library.entity.Permission;
 import com.library.mapper.DepartmentMapper;
+import com.library.mapper.DepartmentPermissionMapper;
 import com.library.mapper.EmployeeMapper;
+import com.library.mapper.PermissionMapper;
 import com.library.service.EmployeeService;
+import com.library.util.PasswordUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -24,6 +30,12 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
 
     @Autowired
     private DepartmentMapper departmentMapper;
+    
+    @Autowired
+    private DepartmentPermissionMapper departmentPermissionMapper;
+    
+    @Autowired
+    private PermissionMapper permissionMapper;
 
     @Override
     public PageResult<Employee> getEmployeePage(Integer page, Integer size, String keyword, Long departmentId) {
@@ -72,6 +84,41 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
     }
 
     @Override
+    public Employee getByUsername(String username) {
+        return baseMapper.selectByUsername(username);
+    }
+
+    @Override
+    public List<Permission> getPermissionsByDepartmentId(Long departmentId) {
+        LambdaQueryWrapper<DepartmentPermission> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(DepartmentPermission::getDepartmentId, departmentId);
+        List<DepartmentPermission> dpList = departmentPermissionMapper.selectList(wrapper);
+        
+        if (dpList == null || dpList.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        List<Long> permissionIds = dpList.stream()
+                .map(DepartmentPermission::getPermissionId)
+                .collect(Collectors.toList());
+        
+        List<Permission> permissions = permissionMapper.selectBatchIds(permissionIds);
+        
+        List<Permission> rootPermissions = permissions.stream()
+                .filter(p -> p.getParentId() == null || p.getParentId() == 0)
+                .collect(Collectors.toList());
+        
+        for (Permission root : rootPermissions) {
+            List<Permission> children = permissions.stream()
+                    .filter(p -> root.getId().equals(p.getParentId()))
+                    .collect(Collectors.toList());
+            root.setChildren(children);
+        }
+        
+        return rootPermissions;
+    }
+
+    @Override
     public boolean addEmployee(Employee employee) {
         if (!StringUtils.hasText(employee.getName())) {
             throw new BusinessException("姓名不能为空");
@@ -90,6 +137,16 @@ public class EmployeeServiceImpl extends ServiceImpl<EmployeeMapper, Employee> i
             Employee existEmployee = getByEmployeeNo(employee.getEmployeeNo());
             if (existEmployee != null) {
                 throw new BusinessException("工号已存在");
+            }
+        }
+        
+        if (StringUtils.hasText(employee.getUsername())) {
+            Employee existEmployee = getByUsername(employee.getUsername());
+            if (existEmployee != null) {
+                throw new BusinessException("用户名已存在");
+            }
+            if (StringUtils.hasText(employee.getPassword())) {
+                employee.setPassword(PasswordUtil.encode(employee.getPassword()));
             }
         }
         

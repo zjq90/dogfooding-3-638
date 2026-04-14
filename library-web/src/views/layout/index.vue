@@ -1,16 +1,17 @@
 <template>
   <el-container class="layout-container">
-    <!-- 顶部导航 -->
     <el-header class="header">
       <div class="header-left">
         <div class="logo">
           <i class="el-icon-reading"></i>
           <span class="logo-text">图书借阅管理系统</span>
+          <el-tag v-if="isEmployee" type="success" size="mini" style="margin-left: 10px">员工端</el-tag>
         </div>
       </div>
       
       <div class="header-center">
         <el-menu
+          v-if="isAdmin"
           :default-active="activeMenu"
           class="nav-menu"
           mode="horizontal"
@@ -19,13 +20,65 @@
           active-text-color="#5B8FF9"
           router
         >
-          <el-menu-item 
-            v-for="item in menuList" 
-            :key="item.path" 
-            :index="item.path"
-          >
-            <i :class="item.icon"></i>
-            <span>{{ item.title }}</span>
+          <el-menu-item index="/dashboard">
+            <i class="el-icon-s-data"></i>
+            <span>数据概览</span>
+          </el-menu-item>
+          
+          <el-submenu index="book-menu">
+            <template slot="title">
+              <i class="el-icon-reading"></i>
+              <span>图书管理</span>
+            </template>
+            <el-menu-item index="/books">图书列表</el-menu-item>
+            <el-menu-item index="/categories">分类管理</el-menu-item>
+            <el-menu-item index="/purchase">图书采购</el-menu-item>
+          </el-submenu>
+          
+          <el-menu-item index="/borrow">
+            <i class="el-icon-document"></i>
+            <span>借阅管理</span>
+          </el-menu-item>
+          
+          <el-submenu index="admin-menu">
+            <template slot="title">
+              <i class="el-icon-setting"></i>
+              <span>行政管理</span>
+            </template>
+            <el-menu-item index="/departments">部门管理</el-menu-item>
+            <el-menu-item index="/employees">人员管理</el-menu-item>
+            <el-menu-item index="/attendance">考勤统计</el-menu-item>
+          </el-submenu>
+          
+          <el-menu-item index="/users">
+            <i class="el-icon-user"></i>
+            <span>用户管理</span>
+          </el-menu-item>
+        </el-menu>
+        
+        <el-menu
+          v-else
+          :default-active="activeMenu"
+          class="nav-menu"
+          mode="horizontal"
+          background-color="transparent"
+          text-color="#595959"
+          active-text-color="#5B8FF9"
+          router
+        >
+          <el-menu-item index="/dashboard">
+            <i class="el-icon-s-data"></i>
+            <span>数据概览</span>
+          </el-menu-item>
+          
+          <el-menu-item index="/books">
+            <i class="el-icon-reading"></i>
+            <span>图书浏览</span>
+          </el-menu-item>
+          
+          <el-menu-item index="/attendance">
+            <i class="el-icon-time"></i>
+            <span>我的考勤</span>
           </el-menu-item>
         </el-menu>
       </div>
@@ -52,7 +105,6 @@
       </div>
     </el-header>
     
-    <!-- 主内容区 -->
     <el-main class="main-content">
       <router-view />
     </el-main>
@@ -62,27 +114,25 @@
 <script>
 import { mapGetters } from 'vuex'
 import { logout } from '@/api/auth'
+import { employeeLogout } from '@/api/employeeAuth'
 
 export default {
   name: 'Layout',
   data() {
     return {
-      defaultAvatar: 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png',
-      menuList: [
-        { path: '/dashboard', title: '数据概览', icon: 'el-icon-s-data' },
-        { path: '/books', title: '图书管理', icon: 'el-icon-reading' },
-        { path: '/categories', title: '分类管理', icon: 'el-icon-folder-opened' },
-        { path: '/borrow', title: '借阅管理', icon: 'el-icon-document' },
-        { path: '/users', title: '用户管理', icon: 'el-icon-user' },
-        { path: '/departments', title: '部门管理', icon: 'el-icon-office-building' },
-        { path: '/employees', title: '人员管理', icon: 'el-icon-s-custom' }
-      ]
+      defaultAvatar: 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
     }
   },
   computed: {
     ...mapGetters(['userInfo']),
     activeMenu() {
       return this.$route.path
+    },
+    isAdmin() {
+      return this.userInfo.type === 'admin' || this.userInfo.role === 1
+    },
+    isEmployee() {
+      return this.userInfo.type === 'employee'
     }
   },
   methods: {
@@ -107,12 +157,15 @@ export default {
           type: 'warning'
         })
         
-        await logout()
+        if (this.isEmployee) {
+          await employeeLogout()
+        } else {
+          await logout()
+        }
         this.$store.dispatch('logout')
         this.$message.success('退出成功')
         this.$router.push('/login')
       } catch (error) {
-        // 用户取消
       }
     }
   }
@@ -195,6 +248,31 @@ export default {
 .nav-menu :deep(.el-menu-item i) {
   margin-right: 6px;
   font-size: 18px;
+}
+
+.nav-menu :deep(.el-submenu) {
+  height: 64px;
+  line-height: 64px;
+}
+
+.nav-menu :deep(.el-submenu__title) {
+  font-size: 15px;
+  height: 64px;
+  line-height: 64px;
+}
+
+.nav-menu :deep(.el-submenu__title i) {
+  margin-right: 6px;
+  font-size: 18px;
+}
+
+.nav-menu :deep(.el-submenu__title:hover) {
+  background-color: rgba(91, 143, 249, 0.05) !important;
+}
+
+.nav-menu :deep(.el-submenu.is-active .el-submenu__title) {
+  background-color: rgba(91, 143, 249, 0.1) !important;
+  font-weight: 500;
 }
 
 .header-right {
