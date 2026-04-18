@@ -19,14 +19,36 @@
           active-text-color="#5B8FF9"
           router
         >
-          <el-menu-item 
-            v-for="item in menuList" 
-            :key="item.path" 
-            :index="item.path"
-          >
-            <i :class="item.icon"></i>
-            <span>{{ item.title }}</span>
-          </el-menu-item>
+          <template v-for="item in menuList">
+            <!-- 没有子菜单的项 -->
+            <el-menu-item 
+              v-if="!item.children" 
+              :key="item.path" 
+              :index="item.path"
+            >
+              <i :class="item.icon"></i>
+              <span>{{ item.title }}</span>
+            </el-menu-item>
+            <!-- 有子菜单的项 -->
+            <el-submenu 
+              v-else 
+              :key="item.path" 
+              :index="item.path"
+            >
+              <template slot="title">
+                <i :class="item.icon"></i>
+                <span>{{ item.title }}</span>
+              </template>
+              <el-menu-item 
+                v-for="child in item.children" 
+                :key="child.path" 
+                :index="child.path"
+              >
+                <i :class="child.icon"></i>
+                <span>{{ child.title }}</span>
+              </el-menu-item>
+            </el-submenu>
+          </template>
         </el-menu>
       </div>
       
@@ -75,14 +97,37 @@ export default {
         { path: '/borrow', title: '借阅管理', icon: 'el-icon-document' },
         { path: '/users', title: '用户管理', icon: 'el-icon-user' },
         { path: '/departments', title: '部门管理', icon: 'el-icon-office-building' },
-        { path: '/employees', title: '人员管理', icon: 'el-icon-s-custom' }
+        { path: '/employees', title: '人员管理', icon: 'el-icon-s-custom' },
+        {
+          path: '/purchase',
+          title: '图书采购',
+          icon: 'el-icon-shopping-cart-full',
+          children: [
+            { path: '/purchase/batch', title: '采购批次', icon: 'el-icon-s-order' },
+            { path: '/purchase/detail', title: '采购明细', icon: 'el-icon-s-goods' }
+          ]
+        },
+        {
+          path: '/administration',
+          title: '行政管理',
+          icon: 'el-icon-s-management',
+          children: [
+            { path: '/administration/attendance', title: '考勤统计', icon: 'el-icon-time' },
+            { path: '/administration/employee', title: '人员管理', icon: 'el-icon-user-solid' }
+          ]
+        }
       ]
     }
   },
   computed: {
     ...mapGetters(['userInfo']),
     activeMenu() {
-      return this.$route.path
+      const path = this.$route.path
+      // 如果是子菜单路径，返回完整路径
+      if (path.startsWith('/purchase/') || path.startsWith('/administration/')) {
+        return path
+      }
+      return path
     }
   },
   methods: {
@@ -195,6 +240,45 @@ export default {
 .nav-menu :deep(.el-menu-item i) {
   margin-right: 6px;
   font-size: 18px;
+}
+
+/* 子菜单样式 */
+.nav-menu :deep(.el-submenu__title) {
+  font-size: 15px;
+  height: 64px;
+  line-height: 64px;
+  padding: 0 24px;
+  margin: 0 4px;
+  border-bottom: none !important;
+  transition: all 0.3s;
+}
+
+.nav-menu :deep(.el-submenu__title:hover) {
+  background-color: rgba(91, 143, 249, 0.05) !important;
+}
+
+.nav-menu :deep(.el-submenu.is-active .el-submenu__title) {
+  background-color: rgba(91, 143, 249, 0.1) !important;
+  font-weight: 500;
+  color: #5B8FF9 !important;
+}
+
+.nav-menu :deep(.el-submenu__title i) {
+  margin-right: 6px;
+  font-size: 18px;
+}
+
+/* 下拉菜单样式 */
+.nav-menu :deep(.el-menu--horizontal .el-menu .el-menu-item) {
+  height: 40px;
+  line-height: 40px;
+  padding: 0 20px;
+  font-size: 14px;
+}
+
+.nav-menu :deep(.el-menu--horizontal .el-menu .el-menu-item i) {
+  margin-right: 8px;
+  font-size: 16px;
 }
 
 .header-right {
